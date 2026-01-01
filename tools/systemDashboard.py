@@ -4,6 +4,7 @@
 import os
 import socket
 import sys
+import subprocess
 from PIL import Image, ImageDraw, ImageFont
 
 # --- THE FIX: USE SSD1608 DRIVER ---
@@ -23,7 +24,8 @@ inky_display.set_border(inky_display.WHITE)
 try:
     from font_fredoka_one import FredokaOne
     from font_hanken_grotesk import HankenGroteskBold
-    font_header = ImageFont.truetype(FredokaOne, 20)
+    # Reduced header size slightly to fit more rows
+    font_header = ImageFont.truetype(FredokaOne, 18)
     font_text = ImageFont.truetype(HankenGroteskBold, 12)
     font_small = ImageFont.truetype(HankenGroteskBold, 10)
 except ImportError:
@@ -42,6 +44,33 @@ def get_ip_address():
         return ip
     except Exception:
         return "No Wifi"
+
+def get_ssid():
+    try:
+        # Uses iwgetid to find the SSID associated with wlan0
+        output = subprocess.check_output(["iwgetid", "-r"]).decode("utf-8").strip()
+        if output:
+            return output
+        return "No Connection"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "Ethernet/Err"
+
+def get_uptime():
+    try:
+        with open('/proc/uptime', 'r') as f:
+            uptime_seconds = float(f.readline().split()[0])
+            days = int(uptime_seconds // (24 * 3600))
+            hours = int((uptime_seconds % (24 * 3600)) // 3600)
+            minutes = int((uptime_seconds % 3600) // 60)
+            
+            if days > 0:
+                return f"Up: {days}d {hours}h"
+            elif hours > 0:
+                return f"Up: {hours}h {minutes}m"
+            else:
+                return f"Up: {minutes}m"
+    except:
+        return "Up: ?"
 
 def get_cpu_temp():
     try:
@@ -100,42 +129,70 @@ def create_dashboard():
     # 2. Get Data
     ip = get_ip_address()
     host = socket.gethostname()
+    ssid = get_ssid()
+    uptime = get_uptime()
     temp = get_cpu_temp()
     load = get_cpu_load()
     ram = get_ram_usage()
     disk = get_disk_usage()
 
     # 3. Draw Header
-    header_h = 28
+    # Reduced height to 24 to save vertical space
+    header_h = 24
     draw.rectangle((0, 0, inky_display.WIDTH, header_h), fill=c_red)
-    draw.text((5, 2), host, fill=c_white, font=font_header)
+    draw.text((5, 1), host, fill=c_white, font=font_header)
     
     # Align IP to right
     try:
         ip_w = font_small.getlength(ip)
     except AttributeError:
         ip_w = font_small.getsize(ip)[0]
-    draw.text((inky_display.WIDTH - ip_w - 5, 8), ip, fill=c_white, font=font_small)
+    draw.text((inky_display.WIDTH - ip_w - 5, 6), ip, fill=c_white, font=font_small)
 
     # 4. Draw Stats
-    y = header_h + 5
-    row_h = 24  # Increased slightly for readability
+    # Compacted row height to ~22px to fit 4 rows
+    y = header_h + 4
+    row_h = 22
     bar_w = 90
     
-    # CPU Row
-    draw.text((5, y), "Load:", fill=c_black, font=font_text)
-    draw.text((45, y), f"{load:.2f}", fill=c_black, font=font_text)
-    temp_color = c_red if temp > 60 else c_black
-    draw.text((inky_display.WIDTH - 65, y), f"{temp:.1f}C", fill=temp_color, font=font_text)
+    # Row 1: SSID and Uptime
+    # Truncate SSID if too long to prevent overlap
+    if len(ssid) > 15:
+        ssid_display = ssid[:14] + "..."
+    else:
+        ssid_display = ssid
+    
+    draw.text((5, y), ssid_display, fill=c_black, font=font_small)
+    
+    # Align Uptime to right
+    try:
+        up_w = font_small.getlength(uptime)
+    except AttributeError:
+        up_w = font_small.getsize(uptime)[0]
+    draw.text((inky_display.WIDTH - up_w - 5, y), uptime, fill=c_black, font=font_small)
+    
     y += row_h
 
-    # RAM Row
+    # Row 2: CPU Load and Temp
+    draw.text((5, y), "Load:", fill=c_black, font=font_text)
+    draw.text((45, y), f"{load:.2f}", fill=c_black, font=font_text)
+    
+    temp_color = c_red if temp > 60 else c_black
+    try:
+        temp_w = font_text.getlength(f"{temp:.1f}C")
+    except AttributeError:
+        temp_w = font_text.getsize(f"{temp:.1f}C")[0]
+        
+    draw.text((inky_display.WIDTH - temp_w - 5, y), f"{temp:.1f}C", fill=temp_color, font=font_text)
+    y += row_h
+
+    # Row 3: RAM
     draw.text((5, y), "RAM:", fill=c_black, font=font_text)
     draw_progress_bar(draw, 45, y+2, bar_w, 10, ram, c_black)
     draw.text((50 + bar_w, y), f"{int(ram)}%", fill=c_black, font=font_small)
     y += row_h
 
-    # Disk Row
+    # Row 4: Disk
     draw.text((5, y), "Disk:", fill=c_black, font=font_text)
     draw_progress_bar(draw, 45, y+2, bar_w, 10, disk, c_red)
     draw.text((50 + bar_w, y), f"{int(disk)}%", fill=c_black, font=font_small)
