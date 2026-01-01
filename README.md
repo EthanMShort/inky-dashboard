@@ -1,5 +1,5 @@
 # inky-dashboard
-Repository for the "Inky pHAT" e-Ink display that used a Raspberry Pi Zero 2 to display different information and graphics. 
+Repository for the "Inky pHAT" e-Ink display that uses a Raspberry Pi Zero 2 to display different information and graphics. 
 
 ## Current Tools
 - System Dashboard: Displays hostname, IP Address, Load, CPU, and Disk Usage.
