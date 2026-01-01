@@ -1,0 +1,3 @@
+[fonts_otf]
+hanken-grotesk = font_hanken_grotesk:font_files_otf
+

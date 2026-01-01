@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inkdisp01</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* --- HEADER --- */
+        header {
+            width: 100%;
+            background-color: #2d2d2d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #datetime {
+            font-size: 0.9rem;
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            color: #ff4d4d; /* Inky Red */
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* --- POWER MENU DROPDOWN --- */
+        .power-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .power-btn {
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .power-btn:hover {
+            color: #ff7675;
+        }
+
+        .power-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #333;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .power-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .power-content a:hover {
+            background-color: #444;
+        }
+
+        .power-content a.danger {
+            color: #ff4d4d;
+        }
+        
+        .power-content a.danger:hover {
+            background-color: #522;
+        }
+
+        /* Show dropdown on hover (or focus for mobile accessibility) */
+        .power-container:hover .power-content,
+        .power-btn:focus + .power-content {
+            display: block;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .container {
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        
+        /* --- BUTTONS --- */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        button, .btn {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        button:hover, .btn:hover { background-color: #555; }
+        
+        /* Easter Egg specific styles */
+        .btn-purple { background-color: #8e44ad; }
+        .btn-purple:hover { background-color: #9b59b6; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #333;
+            color: white;
+            box-sizing: border-box; 
+        }
+
+        /* --- DROPDOWN DETAILS (Easter Eggs) --- */
+        details {
+            background-color: #2d2d2d;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background-color: #2d2d2d;
+            list-style: none; /* Hide default triangle */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Custom arrow indicator */
+        summary::after {
+            content: "▼";
+            font-size: 0.8rem;
+            color: #777;
+            transition: transform 0.2s;
+        }
+
+        details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .details-content {
+            padding: 20px;
+            border-top: 1px solid #444;
+        }
+
+    </style>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+            const timeString = now.toLocaleTimeString('en-US', timeOptions);
+            
+            document.getElementById('datetime').innerHTML = `${dateString}<br>${timeString}`;
+        }
+        setInterval(updateTime, 1000);
+        window.onload = updateTime;
+    </script>
+</head>
+<body>
+
+    <header>
+        <div id="datetime">Loading...</div>
+        
+        <div class="header-title">inkdisp01</div>
+
+        <div class="power-container">
+            <button class="power-btn">⏻</button>
+            <div class="power-content">
+                <a href="/system/restart_service">🛠️ Restart App</a>
+                <a href="/system/reboot">🔄 Reboot</a>
+                <a href="/system/shutdown" class="danger">🛑 Power Off</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div class="btn-grid">
+                <a href="/run/dashboard" class="btn">📊 Sys Stats</a>
+                <a href="/run/clean" class="btn">🧹 Clear Screen</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Send Message</h2>
+            <form action="/message" method="POST">
+                <input type="text" name="text_input" placeholder="Type something..." required>
+                <button type="submit">Display Text</button>
+            </form>
+        </div>
+
+        <details>
+            <summary>🐣 Easter Eggs</summary>
+            <div class="details-content">
+                <div class="btn-grid">
+                    <a href="/run/birthday" class="btn btn-purple" style="grid-column: span 2;">🎂 Mom's Birthday</a>
+                </div>
+            </div>
+        </details>
+    </div>
+
+</body>
+</html>

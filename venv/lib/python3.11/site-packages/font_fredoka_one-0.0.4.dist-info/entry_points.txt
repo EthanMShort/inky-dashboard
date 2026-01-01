@@ -1,0 +1,3 @@
+[fonts_ttf]
+fredoka-one = font_fredoka_one:font_files
+
