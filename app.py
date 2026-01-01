@@ -48,5 +48,15 @@ def system_action(action):
         print(f"Error executing system action {action}: {e}")
     return redirect(url_for('home'))
 
+@app.route('/api/stats')
+def get_stats():
+    """Returns JSON with current system resource usage."""
+    cpu = psutil.cpu_percent(interval=None)
+    mem = psutil.virtual_memory()
+    return jsonify({
+        'cpu': cpu,
+        'ram': mem.percent
+    })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
