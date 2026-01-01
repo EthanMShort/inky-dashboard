@@ -14,6 +14,7 @@ SCRIPTS = {
     'dashboard': os.path.join(TOOLS_DIR, 'systemDashboard.py'),
     'birthday': os.path.join(EGGS_DIR, 'momBirthday.py'),
     'clean': os.path.join(TOOLS_DIR, 'clean.py')
+    'weather': os.path.join(TOOLS_DIR, 'weather.py')
 }
 
 @app.route('/')
