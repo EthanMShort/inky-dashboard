@@ -13,7 +13,7 @@ EGGS_DIR = os.path.join(BASE_DIR, 'easter_eggs')
 SCRIPTS = {
     'dashboard': os.path.join(TOOLS_DIR, 'systemDashboard.py'),
     'birthday': os.path.join(EGGS_DIR, 'momBirthday.py'),
-    'clean': os.path.join(TOOLS_DIR, 'clean.py')
+    'clean': os.path.join(TOOLS_DIR, 'clean.py'),
     'weather': os.path.join(TOOLS_DIR, 'weather.py')
 }
 
