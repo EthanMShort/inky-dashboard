@@ -1,0 +1,24 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environments ---
+venv/
+env/
+.env
+.venv
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- VS Code Settings ---
+.vscode/
+
+# --- Pimoroni/Hardware Specific ---
+# (Optional) If your script generates temp images, ignore them:
+*.png
+*.jpg
+!web/static/images/  # But KEEP images in your specific asset folders
