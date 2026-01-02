@@ -49,15 +49,11 @@
             align-items: center;
         }
 
-        /* NEW: Display Status Badge */
-        #display-status {
-            color: #e74c3c; /* Default Red */
+        /* LAST PUSHED BADGE */
+        #last-pushed {
+            color: #2ecc71; /* Green */
             font-weight: bold;
             text-transform: uppercase;
-            border: 1px solid #444;
-            padding: 1px 6px;
-            border-radius: 4px;
-            background: #222;
         }
 
         .header-title {
@@ -95,22 +91,24 @@
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         /* BUTTON STYLES */
+        /* Note: We use <a> tags styled as buttons, but javascript handles the click */
         .btn {
             background-color: #444; color: white; border: none; padding: 15px;
             border-radius: 8px; font-size: 1rem; cursor: pointer; transition: all 0.2s;
             text-decoration: none; text-align: center; display: block; width: 100%; box-sizing: border-box;
+            user-select: none;
         }
         .btn:hover { background-color: #555; transform: translateY(-2px); }
         .btn-purple { background-color: #8e44ad; } .btn-purple:hover { background-color: #9b59b6; }
         
-        /* DISABLED STATE (Prevent Double Click) */
+        /* DISABLED STATE (The Gray Out Logic) */
         .btn.disabled {
             pointer-events: none;
-            opacity: 0.5;
-            background-color: #222 !important;
-            color: #777 !important;
-            transform: none !important;
+            background-color: #2a2a2a !important; /* Dark Gray */
+            color: #666 !important;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            transform: none !important;
+            cursor: wait;
         }
         
         input[type="text"] {
@@ -123,7 +121,6 @@
         }
         button[type="submit"]:hover { background-color: #555; }
 
-        /* DETAILS / FOOTER */
         details { background-color: #2d2d2d; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden; }
         summary { padding: 20px; cursor: pointer; font-weight: bold; font-size: 1.1rem; background-color: #2d2d2d; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         summary::after { content: "▼"; font-size: 0.8rem; color: #777; transition: transform 0.2s; }
@@ -150,35 +147,45 @@
                 document.getElementById('cpu-val').innerText = Math.round(stats.cpu);
                 document.getElementById('ram-val').innerText = Math.round(stats.ram);
 
-                // Get Active Display Status
-                const statusReq = await fetch('/api/status?t=' + Date.now()); // No-cache
+                // Get Last Pushed
+                const statusReq = await fetch('/api/status?t=' + Date.now()); // Cache buster
                 const statusData = await statusReq.json();
-                const statusEl = document.getElementById('display-status');
+                const el = document.getElementById('last-pushed');
                 
-                statusEl.innerText = statusData.status;
-                
-                // Color coding
-                if(statusData.status === 'Music') statusEl.style.color = '#d35400';
-                else if(statusData.status === 'Weather') statusEl.style.color = '#2980b9';
-                else if(statusData.status === 'Dashboard') statusEl.style.color = '#2ecc71';
-                else statusEl.style.color = '#aaa';
+                // Update Text
+                el.innerText = statusData.status;
 
+                // Color Logic
+                if(statusData.status === 'Music') el.style.color = '#d35400'; // Orange
+                else if(statusData.status === 'Weather') el.style.color = '#3498db'; // Blue
+                else if(statusData.status === 'Stocks') el.style.color = '#f1c40f'; // Yellow
+                else if(statusData.status === 'Dashboard') el.style.color = '#9b59b6'; // Purple
+                else el.style.color = '#2ecc71'; // Default Green
             } catch (error) { console.log(error); }
         }
 
-        // --- PREVENT DOUBLE CLICK LOGIC ---
-        function safeClick(btn) {
-            // 1. Visually disable
-            btn.classList.add('disabled');
-            
-            // 2. Change Text
-            const originalText = btn.innerText;
-            btn.innerText = 'Pushing...';
+        // --- BUTTON LOGIC ---
+        function triggerAction(endpoint, btnElement) {
+            // 1. Prevent Double Click (Visual)
+            const originalText = btnElement.innerText;
+            btnElement.classList.add('disabled');
+            btnElement.innerText = "Pushing...";
 
-            // 3. Re-enable after 5 seconds (in case page doesn't reload)
+            // 2. Send Background Request
+            fetch(endpoint)
+                .then(response => {
+                    if(response.ok) {
+                        console.log("Command sent successfully");
+                        // Wait 1 second then update status immediately
+                        setTimeout(updateStats, 1000);
+                    }
+                })
+                .catch(err => console.error("Error:", err));
+
+            // 3. Re-enable after 5 seconds
             setTimeout(() => {
-                btn.classList.remove('disabled');
-                btn.innerText = originalText;
+                btnElement.classList.remove('disabled');
+                btnElement.innerText = originalText;
             }, 5000);
         }
 
@@ -197,7 +204,7 @@
         <div class="header-left">
             <div id="datetime">Loading...</div>
             <div class="stats-row">
-                <span>Display: <span id="display-status">...</span></span>
+                <span>Last: <span id="last-pushed">...</span></span>
                 <span>| CPU: <span id="cpu-val">--</span>%</span>
                 <span>RAM: <span id="ram-val">--</span>%</span>
             </div>
@@ -219,10 +226,10 @@
         <div class="card">
             <h2>Quick Actions</h2>
             <div class="btn-grid">
-                <a href="/run/dashboard" class="btn" onclick="safeClick(this)">📊 Sys Stats</a>
-                <a href="/run/clean" class="btn" onclick="safeClick(this)">🧹 Clear Screen</a>
-                <a href="/run/weather" class="btn" style="background-color: #2980b9;" onclick="safeClick(this)">☁️ Weather</a>
-                <a href="/run/music" class="btn" style="background-color: #d35400;" onclick="safeClick(this)">🎵 Now Playing</a>
+                <a href="javascript:void(0)" class="btn" onclick="triggerAction('/run/dashboard', this)">📊 Sys Stats</a>
+                <a href="javascript:void(0)" class="btn" onclick="triggerAction('/run/clean', this)">🧹 Clear Screen</a>
+                <a href="javascript:void(0)" class="btn" style="background-color: #2980b9;" onclick="triggerAction('/run/weather', this)">☁️ Weather</a>
+                <a href="javascript:void(0)" class="btn" style="background-color: #d35400;" onclick="triggerAction('/run/music', this)">🎵 Now Playing</a>
             </div>
         </div>
 
@@ -230,7 +237,7 @@
             <h2>Send Message</h2>
             <form action="/message" method="POST">
                 <input type="text" name="text_input" placeholder="Type something..." required>
-                <button type="submit" onclick="safeClick(this)">Display Text</button>
+                <button type="submit" onclick="this.classList.add('disabled'); this.innerText='Sending...'; setTimeout(()=>{this.classList.remove('disabled');this.innerText='Display Text'}, 5000)">Display Text</button>
             </form>
         </div>
 
@@ -238,7 +245,7 @@
             <summary>🐣 Easter Eggs</summary>
             <div class="details-content">
                 <div class="btn-grid">
-                    <a href="/run/birthday" class="btn btn-purple" style="grid-column: span 2;" onclick="safeClick(this)">🎂 Mom's Birthday</a>
+                    <a href="javascript:void(0)" class="btn btn-purple" style="grid-column: span 2;" onclick="triggerAction('/run/birthday', this)">🎂 Mom's Birthday</a>
                 </div>
             </div>
         </details>
