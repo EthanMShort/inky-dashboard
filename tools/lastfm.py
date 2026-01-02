@@ -66,13 +66,22 @@ def get_now_playing():
         return None
 
 def process_art(url, size=(122, 122)):
-    """Downloads art and converts to dithered 1-bit B&W"""
+    """Downloads art and converts to HIGH CONTRAST (No dots/dithering)"""
     if not url: return None
     try:
         response = requests.get(url)
         img = Image.open(io.BytesIO(response.content))
-        img = ImageOps.fit(img, size, method=Image.NEAREST)
-        img = img.convert("1") # Dither
+        
+        # 1. Resize nicely (LANCZOS keeps it smooth before we cut it)
+        img = ImageOps.fit(img, size, method=Image.LANCZOS)
+        
+        # 2. Convert to Grayscale
+        img = img.convert("L")
+        
+        # 3. THRESHOLD: Force every pixel to be either fully Black or fully White
+        # This removes the "dots". Adjust '128' up or down to change darkness sensitivity.
+        img = img.point(lambda p: 0 if p < 128 else 255, '1')
+        
         return img
     except:
         return None
