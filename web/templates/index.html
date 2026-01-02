@@ -6,76 +6,139 @@
     <title>Inky Dashboard</title>
     <style>
         :root {
-            /* DARK MODE PALETTE */
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
+            /* DARK MODE THEME */
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --bg-header: #252525;
             --text-main: #ecf0f1;
-            --text-muted: #bdc3c7;
-            --accent: #e74c3c; /* Inky Red */
-            --border-radius: 12px;
+            --text-muted: #95a5a6;
+            --accent: #e74c3c;
+            --accent-blue: #3498db;
+            --accent-green: #2ecc71;
+            --accent-yellow: #f1c40f;
         }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
 
-        .container {
-            max-width: 600px; /* Tighter width for better mobile/desktop feel */
-            margin: 0 auto;
+        /* --- HEADER --- */
+        header {
+            background-color: var(--bg-header);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        h1 {
-            text-align: center;
-            color: var(--accent);
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* LIVE CLOCK */
+        #clockDate {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        #clockTime {
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 30px;
             letter-spacing: 1px;
+            color: var(--text-main);
         }
 
-        /* CARD STYLING */
+        /* STATUS BADGES */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            background: #333;
+            color: #ddd;
+        }
+        .badge.active { background: var(--accent-green); color: #1e1e1e; }
+        .badge.busy { background: var(--accent-yellow); color: #1e1e1e; }
+
+        .sys-stats {
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* POWER BUTTONS (Header) */
+        .pwr-btn {
+            background: #333;
+            border: none;
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pwr-btn:hover { background: #444; transform: translateY(-2px); }
+        .pwr-btn.restart:hover { background: #3498db; }
+        .pwr-btn.reboot:hover { background: #e67e22; }
+        .pwr-btn.shutdown:hover { background: #c0392b; }
+
+        /* --- CONTAINER --- */
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* CARDS */
         .card {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
+            background-color: var(--bg-card);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .card h2 {
             margin-top: 0;
-            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
             font-size: 1.1rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            letter-spacing: 1px;
         }
 
-        /* STATUS BADGE */
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-        }
-        .status-badge {
-            background-color: #2c3e50;
-            color: #3498db;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        /* BUTTON GRID */
+        /* ACTION BUTTONS */
         .btn-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 Columns for cleaner look */
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
 
@@ -83,59 +146,48 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
             text-decoration: none;
             color: white;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: 8px;
-            transition: transform 0.1s ease, filter 0.2s;
+            font-size: 1.1rem;
+            transition: transform 0.1s, filter 0.2s;
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             border: none;
             cursor: pointer;
-            font-size: 1rem;
         }
+        .btn:hover { filter: brightness(1.15); }
+        .btn:active { transform: scale(0.98); }
+        .btn.disabled { pointer-events: none; filter: grayscale(1); opacity: 0.5; }
 
-        .btn:hover { filter: brightness(1.1); }
-        .btn:active { transform: scale(0.97); }
-        
-        .btn.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            filter: grayscale(0.8);
-        }
-
-        /* COLORS */
         .btn-sys { background-color: #34495e; }
-        .btn-clean { background-color: #95a5a6; color: #2c3e50; }
-        .btn-weather { background-color: #2980b9; }
-        .btn-stocks { background-color: #f39c12; color: #2c3e50; }
-        .btn-music { background-color: #c0392b; }
-        
-        .btn-restart { background-color: #7f8c8d; }
-        .btn-reboot { background-color: #d35400; }
-        .btn-shutdown { background-color: #c0392b; }
+        .btn-clean { background-color: #7f8c8d; color: #fff; }
+        .btn-weather { background-color: var(--accent-blue); }
+        .btn-stocks { background-color: var(--accent-yellow); color: #2c3e50; }
+        .btn-music { background-color: #d35400; }
 
-        /* FORM */
-        form { display: flex; gap: 10px; }
+        /* INPUT FORM */
+        form { display: flex; gap: 10px; margin-top: 15px; }
         input[type="text"] {
             flex: 1;
             padding: 12px;
             border-radius: 6px;
-            border: 1px solid #333;
-            background-color: #121212;
+            border: 1px solid #444;
+            background: #121212;
             color: white;
             font-size: 1rem;
         }
         input[type="text"]:focus { outline: 2px solid var(--accent); }
-        .btn-send { background-color: var(--accent); width: auto; padding: 0 25px; }
+        .btn-send { background: var(--accent); width: auto; padding: 0 25px; }
 
         /* LOADING OVERLAY */
         #loadingOverlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -149,7 +201,7 @@
             margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text { color: white; font-weight: bold; letter-spacing: 1px; }
+        .loading-text { color: white; font-weight: bold; letter-spacing: 2px; }
 
     </style>
 </head>
@@ -160,30 +212,36 @@
         <div class="loading-text">UPDATING DISPLAY...</div>
     </div>
 
-    <div class="container">
-        <h1>Inky Dashboard</h1>
-        
-        <div class="card">
-            <h2>Status</h2>
+    <header>
+        <div class="header-left">
+            <div id="clockTime">--:--</div>
+            <div id="clockDate">Loading...</div>
+            
             <div class="status-row">
-                <div>
-                    <span style="color:var(--text-muted)">Active:</span> 
-                    <span id="currentScript" class="status-badge">...</span>
-                </div>
-                <div style="text-align: right; color: var(--text-muted); font-size: 0.85rem;">
-                    <span id="cpuUsage">CPU: -%</span> &nbsp;|&nbsp; 
-                    <span id="ramUsage">RAM: -%</span>
-                </div>
+                <span id="displayStatus" class="badge">Checking...</span>
+                <span class="sys-stats">
+                    CPU: <span id="cpu">0</span>% | RAM: <span id="ram">0</span>%
+                </span>
             </div>
         </div>
 
+        <div class="header-right">
+            <button class="pwr-btn restart" onclick="confirmSys('/system/restart_service')" title="Restart Service">🔄</button>
+            <button class="pwr-btn reboot" onclick="confirmSys('/system/reboot')" title="Reboot Pi">⚡</button>
+            <button class="pwr-btn shutdown" onclick="confirmSys('/system/shutdown')" title="Shutdown Pi">🛑</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
         <div class="card">
             <h2>Dashboards</h2>
             <div class="btn-grid">
                 <a href="#" onclick="runAction('/run/dashboard')" class="btn btn-sys">📊 System</a>
+                <a href="#" onclick="runAction('/run/clean')" class="btn btn-clean">🧹 Clean</a>
                 <a href="#" onclick="runAction('/run/weather')" class="btn btn-weather">☁️ Weather</a>
-                <a href="#" onclick="runAction('/run/music')" class="btn btn-music">🎵 Music</a>
-                <a href="#" onclick="runAction('/run/clean')" class="btn btn-clean" style="grid-column: span 2;">🧹 Clean Display</a>
+                <a href="#" onclick="runAction('/run/stocks')" class="btn btn-stocks">📈 Stocks</a>
+                <a href="#" onclick="runAction('/run/music')" class="btn btn-music" style="grid-column: span 2;">🎵 Now Playing</a>
             </div>
         </div>
 
@@ -195,17 +253,52 @@
             </form>
         </div>
 
-        <div class="card">
-            <h2>Power</h2>
-            <div class="btn-grid" style="grid-template-columns: repeat(3, 1fr);">
-                <a href="#" onclick="runAction('/system/restart_service')" class="btn btn-restart">Restart Svc</a>
-                <a href="#" onclick="runAction('/system/reboot')" class="btn btn-reboot">Reboot</a>
-                <a href="#" onclick="runAction('/system/shutdown')" class="btn btn-shutdown">Shutdown</a>
-            </div>
-        </div>
     </div>
 
     <script>
+        // --- 1. CLOCK ---
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+            
+            document.getElementById('clockTime').innerText = timeStr;
+            document.getElementById('clockDate').innerText = dateStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 2. STATS & STATUS ---
+        function updateStats() {
+            // Stats
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('cpu').innerText = data.cpu;
+                    document.getElementById('ram').innerText = data.ram;
+                });
+
+            // Status (Added timestamp 't' to prevent caching)
+            fetch(`/api/status?t=${Date.now()}`)
+                .then(r => r.json())
+                .then(data => {
+                    const badge = document.getElementById('displayStatus');
+                    badge.innerText = data.status;
+                    
+                    // Dynamic Styling
+                    badge.className = 'badge'; // reset
+                    if (['Music', 'Stocks', 'Weather', 'Dashboard'].includes(data.status)) {
+                        badge.classList.add('active');
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('displayStatus').innerText = "Offline";
+                });
+        }
+        setInterval(updateStats, 3000);
+        updateStats();
+
+        // --- 3. UI ACTIONS ---
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
             document.querySelectorAll('.btn').forEach(b => b.classList.add('disabled'));
@@ -213,27 +306,15 @@
 
         function runAction(url) {
             showLoading();
-            setTimeout(() => { window.location.href = url; }, 100);
+            // Small delay to let UI render overlay before navigating
+            setTimeout(() => { window.location.href = url; }, 50);
         }
 
-        function updateStats() {
-            fetch('/api/stats').then(r => r.json()).then(data => {
-                document.getElementById('cpuUsage').innerText = `CPU: ${data.cpu}%`;
-                document.getElementById('ramUsage').innerText = `RAM: ${data.ram}%`;
-            });
-            fetch('/api/status').then(r => r.json()).then(data => {
-                const badge = document.getElementById('currentScript');
-                badge.innerText = data.status;
-                // Color code the status text
-                if(data.status === 'Music') badge.style.color = '#e74c3c';
-                else if(data.status === 'Stocks') badge.style.color = '#f1c40f';
-                else if(data.status === 'Weather') badge.style.color = '#3498db';
-                else badge.style.color = '#2ecc71';
-            });
+        function confirmSys(url) {
+            if(confirm("Are you sure you want to perform this power action?")) {
+                runAction(url);
+            }
         }
-
-        updateStats();
-        setInterval(updateStats, 5000);
     </script>
 </body>
 </html>
