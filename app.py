@@ -83,3 +83,17 @@ def get_stats():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
+@app.route('/api/status')
+def get_status():
+    """Returns the name of the currently active script."""
+    state_file = os.path.join(BASE_DIR, "state.txt")
+    try:
+        if os.path.exists(state_file):
+            with open(state_file, "r") as f:
+                current_script = f.read().strip().capitalize()
+            return jsonify({'status': current_script})
+        else:
+            return jsonify({'status': 'Idle'})
+    except Exception as e:
+        return jsonify({'status': 'Error'})
