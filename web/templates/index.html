@@ -3,318 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inky Dashboard</title>
+    <title>inkdisp01</title>
     <style>
-        :root {
-            /* DARK MODE THEME */
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
-            --bg-header: #252525;
-            --text-main: #ecf0f1;
-            --text-muted: #95a5a6;
-            --accent: #e74c3c;
-            --accent-blue: #3498db;
-            --accent-green: #2ecc71;
-            --accent-yellow: #f1c40f;
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 0;
+            margin: 0;
+            min-height: 100vh; /* Ensure body takes full height for footer positioning */
         }
 
         /* --- HEADER --- */
         header {
-            background-color: var(--bg-header);
-            padding: 15px 20px;
+            width: 100%;
+            background-color: #2d2d2d;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-sizing: border-box;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .header-left {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
-        .header-right {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* LIVE CLOCK */
-        #clockDate {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        #clockTime {
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: var(--text-main);
-        }
-
-        /* STATUS BADGES */
-        .status-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-            margin-top: 5px;
-        }
-        
-        .badge {
-            padding: 3px 8px;
-            border-radius: 4px;
+        #datetime {
+            font-size: 0.9rem;
+            color: #fff;
             font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            background: #333;
-            color: #ddd;
         }
-        .badge.active { background: var(--accent-green); color: #1e1e1e; }
-        .badge.busy { background: var(--accent-yellow); color: #1e1e1e; }
 
-        .sys-stats {
-            color: var(--text-muted);
+        #sys-stats {
+            font-size: 0.75rem;
+            color: #aaa;
             font-family: monospace;
         }
 
-        /* POWER BUTTONS (Header) */
-        .pwr-btn {
-            background: #333;
-            border: none;
-            color: var(--text-main);
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+        .header-title {
             font-size: 1.2rem;
+            color: #ff4d4d; /* Inky Red */
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* --- POWER MENU DROPDOWN --- */
+        .power-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .power-btn {
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 5px;
+            transition: color 0.2s;
         }
-        .pwr-btn:hover { background: #444; transform: translateY(-2px); }
-        .pwr-btn.restart:hover { background: #3498db; }
-        .pwr-btn.reboot:hover { background: #e67e22; }
-        .pwr-btn.shutdown:hover { background: #c0392b; }
 
-        /* --- CONTAINER --- */
+        .power-btn:hover {
+            color: #ff7675;
+        }
+
+        .power-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #333;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .power-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .power-content a:hover {
+            background-color: #444;
+        }
+
+        .power-content a.danger {
+            color: #ff4d4d;
+        }
+        
+        .power-content a.danger:hover {
+            background-color: #522;
+        }
+
+        .power-container:hover .power-content,
+        .power-btn:focus + .power-content {
+            display: block;
+        }
+
+        /* --- MAIN LAYOUT --- */
         .container {
-            max-width: 700px;
-            margin: 20px auto;
-            padding: 0 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1; /* Pushes footer down */
         }
 
-        /* CARDS */
         .card {
-            background-color: var(--bg-card);
+            background-color: #2d2d2d;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-
-        .card h2 {
-            margin-top: 0;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ACTION BUTTONS */
+        
+        h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        
         .btn-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
-
-        .btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-decoration: none;
+        
+        button, .btn {
+            background-color: #444;
             color: white;
-            font-weight: 700;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            transition: transform 0.1s, filter 0.2s;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             border: none;
-            cursor: pointer;
-        }
-        .btn:hover { filter: brightness(1.15); }
-        .btn:active { transform: scale(0.98); }
-        .btn.disabled { pointer-events: none; filter: grayscale(1); opacity: 0.5; }
-
-        .btn-sys { background-color: #34495e; }
-        .btn-clean { background-color: #7f8c8d; color: #fff; }
-        .btn-weather { background-color: var(--accent-blue); }
-        .btn-stocks { background-color: var(--accent-yellow); color: #2c3e50; }
-        .btn-music { background-color: #d35400; }
-
-        /* INPUT FORM */
-        form { display: flex; gap: 10px; margin-top: 15px; }
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #121212;
-            color: white;
+            padding: 15px;
+            border-radius: 8px;
             font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
         }
-        input[type="text"]:focus { outline: 2px solid var(--accent); }
-        .btn-send { background: var(--accent); width: auto; padding: 0 25px; }
+        
+        button:hover, .btn:hover { background-color: #555; }
+        .btn-purple { background-color: #8e44ad; }
+        .btn-purple:hover { background-color: #9b59b6; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #333;
+            color: white;
+            box-sizing: border-box; 
+        }
 
-        /* LOADING OVERLAY */
-        #loadingOverlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 999;
-            flex-direction: column;
-            justify-content: center;
+        details {
+            background-color: #2d2d2d;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background-color: #2d2d2d;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid #333;
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+
+        summary::after {
+            content: "▼";
+            font-size: 0.8rem;
+            color: #777;
+            transition: transform 0.2s;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text { color: white; font-weight: bold; letter-spacing: 2px; }
+
+        details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .details-content {
+            padding: 20px;
+            border-top: 1px solid #444;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+            width: 100%;
+            border-top: 1px solid #333;
+            background-color: #222;
+        }
+
+        footer a {
+            color: #888;
+            text-decoration: none;
+            border-bottom: 1px dotted #666;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #ff4d4d;
+            border-bottom: 1px solid #ff4d4d;
+        }
 
     </style>
+    <script>
+        // Update Time
+        function updateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' }; // Removed seconds to save space
+            
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+            const timeString = now.toLocaleTimeString('en-US', timeOptions);
+            
+            document.getElementById('datetime').innerHTML = `${dateString}, ${timeString}`;
+        }
+
+        // Fetch CPU/RAM Stats from Python
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                document.getElementById('cpu-val').innerText = Math.round(data.cpu);
+                document.getElementById('ram-val').innerText = Math.round(data.ram);
+            } catch (error) {
+                console.log("Error fetching stats:", error);
+            }
+        }
+
+        // Simple disable to prevent double-click crashes
+        function safeClick(el) {
+            el.style.pointerEvents = 'none';
+            el.style.opacity = '0.6';
+            el.innerText = 'Loading...';
+        }
+
+        setInterval(updateTime, 1000);
+        setInterval(updateStats, 2000); // Refresh stats every 2 seconds
+        
+        window.onload = function() {
+            updateTime();
+            updateStats();
+        };
+    </script>
 </head>
 <body>
 
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="loading-text">UPDATING DISPLAY...</div>
-    </div>
-
     <header>
         <div class="header-left">
-            <div id="clockTime">--:--</div>
-            <div id="clockDate">Loading...</div>
-            
-            <div class="status-row">
-                <span id="displayStatus" class="badge">Checking...</span>
-                <span class="sys-stats">
-                    CPU: <span id="cpu">0</span>% | RAM: <span id="ram">0</span>%
-                </span>
+            <div id="datetime">Loading...</div>
+            <div id="sys-stats">
+                CPU: <span id="cpu-val">--</span>% | RAM: <span id="ram-val">--</span>%
             </div>
         </div>
+        
+        <div class="header-title">inkdisp01</div>
 
-        <div class="header-right">
-            <button class="pwr-btn restart" onclick="confirmSys('/system/restart_service')" title="Restart Service">🔄</button>
-            <button class="pwr-btn reboot" onclick="confirmSys('/system/reboot')" title="Reboot Pi">⚡</button>
-            <button class="pwr-btn shutdown" onclick="confirmSys('/system/shutdown')" title="Shutdown Pi">🛑</button>
+        <div class="power-container">
+            <button class="power-btn">⏻</button>
+            <div class="power-content">
+                <a href="/system/restart_service">🛠️ Restart App</a>
+                <a href="/system/reboot">🔄 Reboot</a>
+                <a href="/system/shutdown" class="danger">🛑 Power Off</a>
+            </div>
         </div>
     </header>
 
     <div class="container">
-        
         <div class="card">
-            <h2>Dashboards</h2>
+            <h2>Quick Actions</h2>
             <div class="btn-grid">
-                <a href="#" onclick="runAction('/run/dashboard')" class="btn btn-sys">📊 System</a>
-                <a href="#" onclick="runAction('/run/clean')" class="btn btn-clean">🧹 Clean</a>
-                <a href="#" onclick="runAction('/run/weather')" class="btn btn-weather">☁️ Weather</a>
-                <a href="#" onclick="runAction('/run/stocks')" class="btn btn-stocks">📈 Stocks</a>
-                <a href="#" onclick="runAction('/run/music')" class="btn btn-music" style="grid-column: span 2;">🎵 Now Playing</a>
+                <a href="/run/dashboard" class="btn" onclick="safeClick(this)">📊 Sys Stats</a>
+                <a href="/run/clean" class="btn" onclick="safeClick(this)">🧹 Clear Screen</a>
+                <a href="/run/weather" class="btn" style="background-color: #2980b9;" onclick="safeClick(this)">☁️ Weather</a>
+                <a href="/run/music" class="btn" style="background-color: #d35400;" onclick="safeClick(this)">🎵 Now Playing</a>
             </div>
         </div>
 
         <div class="card">
             <h2>Send Message</h2>
-            <form action="/message" method="POST" onsubmit="showLoading()">
-                <input type="text" name="text_input" placeholder="Type text..." required autocomplete="off">
-                <button type="submit" class="btn btn-send">Send</button>
+            <form action="/message" method="POST">
+                <input type="text" name="text_input" placeholder="Type something..." required>
+                <button type="submit" onclick="safeClick(this)">Display Text</button>
             </form>
         </div>
 
+        <details>
+            <summary>🐣 Easter Eggs</summary>
+            <div class="details-content">
+                <div class="btn-grid">
+                    <a href="/run/birthday" class="btn btn-purple" style="grid-column: span 2;" onclick="safeClick(this)">🎂 Mom's Birthday</a>
+                </div>
+            </div>
+        </details>
     </div>
 
-    <script>
-        // --- 1. CLOCK ---
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const dateStr = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-            
-            document.getElementById('clockTime').innerText = timeStr;
-            document.getElementById('clockDate').innerText = dateStr;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+    <footer>
+        &copy; 2025 Ethan Short | 
+        <a href="https://github.com/EthanMShort/inky-dashboard" target="_blank">GitHub Repo</a>
+    </footer>
 
-        // --- 2. STATS & STATUS ---
-        function updateStats() {
-            // Stats
-            fetch('/api/stats')
-                .then(r => r.json())
-                .then(data => {
-                    document.getElementById('cpu').innerText = data.cpu;
-                    document.getElementById('ram').innerText = data.ram;
-                });
-
-            // Status (Added timestamp 't' to prevent caching)
-            fetch(`/api/status?t=${Date.now()}`)
-                .then(r => r.json())
-                .then(data => {
-                    const badge = document.getElementById('displayStatus');
-                    badge.innerText = data.status;
-                    
-                    // Dynamic Styling
-                    badge.className = 'badge'; // reset
-                    if (['Music', 'Stocks', 'Weather', 'Dashboard'].includes(data.status)) {
-                        badge.classList.add('active');
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('displayStatus').innerText = "Offline";
-                });
-        }
-        setInterval(updateStats, 3000);
-        updateStats();
-
-        // --- 3. UI ACTIONS ---
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            document.querySelectorAll('.btn').forEach(b => b.classList.add('disabled'));
-        }
-
-        function runAction(url) {
-            showLoading();
-            // Small delay to let UI render overlay before navigating
-            setTimeout(() => { window.location.href = url; }, 50);
-        }
-
-        function confirmSys(url) {
-            if(confirm("Are you sure you want to perform this power action?")) {
-                runAction(url);
-            }
-        }
-    </script>
 </body>
 </html>
