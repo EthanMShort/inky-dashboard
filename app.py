@@ -26,7 +26,27 @@ def home():
 def run_script(script_key):
     script_path = SCRIPTS.get(script_key)
     if script_path and os.path.exists(script_path):
-        subprocess.Popen([sys.executable, script_path])
+        
+        # 1. Save the active state (For Smart Refresh)
+        state_file = os.path.join(BASE_DIR, "state.txt")
+        try:
+            with open(state_file, "w") as f:
+                f.write(script_key)
+        except Exception as e:
+            print(f"Error saving state: {e}")
+
+        # 2. Special Handling for Music (Background Daemon)
+        if script_key == 'music':
+            # Kill any running instances of lastfm.py to avoid conflicts
+            subprocess.call(['pkill', '-f', 'lastfm.py'])
+            # Start fresh in background
+            subprocess.Popen([sys.executable, script_path])
+        
+        # 3. Standard Handling for others (Run once)
+        else:
+            # We use Popen here too so the web page doesn't freeze while the screen draws
+            subprocess.Popen([sys.executable, script_path])
+
     return redirect(url_for('home'))
 
 @app.route('/message', methods=['POST'])
