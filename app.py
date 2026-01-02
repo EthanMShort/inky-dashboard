@@ -27,24 +27,27 @@ def run_script(script_key):
     script_path = SCRIPTS.get(script_key)
     if script_path and os.path.exists(script_path):
         
-        # 1. Save State (So the web page knows what is running)
+        # 1. SAVE "LAST PUSHED" STATE
         state_file = os.path.join(BASE_DIR, "state.txt")
         try:
             with open(state_file, "w") as f:
-                f.write(script_key)
-        except:
-            pass
+                # Save friendly name (e.g. "music" -> "Music")
+                f.write(script_key.capitalize())
+        except Exception as e:
+            print(f"Error saving state: {e}")
 
-        # 2. Kill old Music scripts if switching to/from Music
+        # 2. RUN SCRIPT (Handle Background vs Foreground)
         if script_key == 'music':
+            # Kill old instances for music
             subprocess.call(['pkill', '-f', 'lastfm.py'])
             subprocess.Popen([sys.executable, script_path])
         else:
-            # If running a normal script, also kill music so it doesn't overwrite
+            # Kill music if running another script to prevent conflicts
             subprocess.call(['pkill', '-f', 'lastfm.py'])
             subprocess.Popen([sys.executable, script_path])
 
-    return redirect(url_for('home'))
+    # Return success (for AJAX)
+    return jsonify({"status": "success", "script": script_key})
 
 @app.route('/message', methods=['POST'])
 def message():
@@ -87,8 +90,7 @@ def get_status():
     try:
         if os.path.exists(state_file):
             with open(state_file, "r") as f:
-                # Returns "Music", "Weather", etc.
-                return jsonify({'status': f.read().strip().capitalize()})
+                return jsonify({'status': f.read().strip()})
         return jsonify({'status': 'Idle'})
     except:
         return jsonify({'status': 'Error'})
