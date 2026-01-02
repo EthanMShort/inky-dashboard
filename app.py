@@ -27,24 +27,21 @@ def run_script(script_key):
     script_path = SCRIPTS.get(script_key)
     if script_path and os.path.exists(script_path):
         
-        # 1. Save the active state (For Smart Refresh)
+        # 1. Save State (So the web page knows what is running)
         state_file = os.path.join(BASE_DIR, "state.txt")
         try:
             with open(state_file, "w") as f:
                 f.write(script_key)
-        except Exception as e:
-            print(f"Error saving state: {e}")
+        except:
+            pass
 
-        # 2. Special Handling for Music (Background Daemon)
+        # 2. Kill old Music scripts if switching to/from Music
         if script_key == 'music':
-            # Kill any running instances of lastfm.py to avoid conflicts
             subprocess.call(['pkill', '-f', 'lastfm.py'])
-            # Start fresh in background
             subprocess.Popen([sys.executable, script_path])
-        
-        # 3. Standard Handling for others (Run once)
         else:
-            # We use Popen here too so the web page doesn't freeze while the screen draws
+            # If running a normal script, also kill music so it doesn't overwrite
+            subprocess.call(['pkill', '-f', 'lastfm.py'])
             subprocess.Popen([sys.executable, script_path])
 
     return redirect(url_for('home'))
@@ -90,7 +87,7 @@ def get_status():
     try:
         if os.path.exists(state_file):
             with open(state_file, "r") as f:
-                # Capitalize for looks (e.g. "music" -> "Music")
+                # Returns "Music", "Weather", etc.
                 return jsonify({'status': f.read().strip().capitalize()})
         return jsonify({'status': 'Idle'})
     except:
